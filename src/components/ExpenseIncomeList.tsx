@@ -1,0 +1,93 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Trash2, TrendingDown, TrendingUp } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+export interface Transaction {
+  id: string;
+  title: string;
+  amount: number;
+  type: "expense" | "income";
+}
+
+interface ExpenseIncomeListProps {
+  transactions: Transaction[];
+  onDelete: (id: string) => void;
+}
+
+export function ExpenseIncomeList({ transactions, onDelete }: ExpenseIncomeListProps) {
+  const expenses = transactions.filter(t => t.type === "expense");
+  const income = transactions.filter(t => t.type === "income");
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingDown className="h-5 w-5 text-destructive" />
+          <h3 className="text-lg font-semibold text-foreground">Expenses</h3>
+        </div>
+        <ScrollArea className="h-[300px] pr-4">
+          {expenses.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No expenses added yet</p>
+          ) : (
+            <div className="space-y-3">
+              {expenses.map((expense) => (
+                <div 
+                  key={expense.id}
+                  className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-foreground">{expense.title}</p>
+                    <p className="text-sm text-destructive font-semibold">${expense.amount.toFixed(2)}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(expense.id)}
+                    className="hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="h-5 w-5 text-success" />
+          <h3 className="text-lg font-semibold text-foreground">Income</h3>
+        </div>
+        <ScrollArea className="h-[300px] pr-4">
+          {income.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No income added yet</p>
+          ) : (
+            <div className="space-y-3">
+              {income.map((inc) => (
+                <div 
+                  key={inc.id}
+                  className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-foreground">{inc.title}</p>
+                    <p className="text-sm text-success font-semibold">${inc.amount.toFixed(2)}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(inc.id)}
+                    className="hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </Card>
+    </div>
+  );
+}
