@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { MonthYearSelector } from "@/components/MonthYearSelector";
+import { CurrencySelector } from "@/components/CurrencySelector";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { ExpenseIncomeForm } from "@/components/ExpenseIncomeForm";
 import { ExpenseIncomeList, Transaction } from "@/components/ExpenseIncomeList";
@@ -11,10 +12,13 @@ interface MonthlyData {
   transactions: Transaction[];
 }
 
+const USD_TO_INR = 83.0; // Conversion rate
+
 const Index = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [currency, setCurrency] = useState<"USD" | "INR">("USD");
   
   const getStorageKey = (month: number, year: number) => 
     `budget-app-${year}-${month}`;
@@ -91,6 +95,11 @@ const Index = () => {
 
   const savings = monthlyData.budget - totalExpenses;
 
+  const currencySymbol = currency === "USD" ? "$" : "₹";
+  const conversionRate = currency === "INR" ? USD_TO_INR : 1;
+
+  const displayAmount = (amount: number) => amount * conversionRate;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -104,19 +113,26 @@ const Index = () => {
                 Manage your finances and track your savings
               </p>
             </div>
-            <MonthYearSelector
-              selectedMonth={selectedMonth}
-              selectedYear={selectedYear}
-              onMonthChange={setSelectedMonth}
-              onYearChange={setSelectedYear}
-            />
+            <div className="flex flex-wrap gap-3">
+              <MonthYearSelector
+                selectedMonth={selectedMonth}
+                selectedYear={selectedYear}
+                onMonthChange={setSelectedMonth}
+                onYearChange={setSelectedYear}
+              />
+              <CurrencySelector
+                selectedCurrency={currency}
+                onCurrencyChange={setCurrency}
+              />
+            </div>
           </div>
           
           <BudgetSummary
-            budget={monthlyData.budget}
-            totalExpenses={totalExpenses}
-            totalIncome={totalIncome}
-            savings={savings}
+            budget={displayAmount(monthlyData.budget)}
+            totalExpenses={displayAmount(totalExpenses)}
+            totalIncome={displayAmount(totalIncome)}
+            savings={displayAmount(savings)}
+            currencySymbol={currencySymbol}
           />
         </header>
 
@@ -131,8 +147,12 @@ const Index = () => {
           <MotivationalTips />
 
           <ExpenseIncomeList
-            transactions={monthlyData.transactions}
+            transactions={monthlyData.transactions.map(t => ({
+              ...t,
+              amount: displayAmount(t.amount)
+            }))}
             onDelete={handleDeleteTransaction}
+            currencySymbol={currencySymbol}
           />
         </div>
       </div>

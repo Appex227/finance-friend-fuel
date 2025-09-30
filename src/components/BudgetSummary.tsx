@@ -6,9 +6,10 @@ interface BudgetSummaryProps {
   totalExpenses: number;
   totalIncome: number;
   savings: number;
+  currencySymbol: string;
 }
 
-export function BudgetSummary({ budget, totalExpenses, totalIncome, savings }: BudgetSummaryProps) {
+export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, currencySymbol }: BudgetSummaryProps) {
   const savingsIsPositive = savings >= 0;
 
   return (
@@ -17,7 +18,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings }: B
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Total Budget</p>
-            <p className="text-2xl font-bold text-foreground">${budget.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-foreground">{currencySymbol}{budget.toFixed(2)}</p>
           </div>
           <div className="p-3 rounded-full bg-primary/10">
             <Wallet className="h-6 w-6 text-primary" />
@@ -29,7 +30,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings }: B
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Total Expenses</p>
-            <p className="text-2xl font-bold text-destructive">${totalExpenses.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-destructive">{currencySymbol}{totalExpenses.toFixed(2)}</p>
           </div>
           <div className="p-3 rounded-full bg-destructive/10">
             <TrendingDown className="h-6 w-6 text-destructive" />
@@ -41,7 +42,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings }: B
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Total Income</p>
-            <p className="text-2xl font-bold text-success">${totalIncome.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-success">{currencySymbol}{totalIncome.toFixed(2)}</p>
           </div>
           <div className="p-3 rounded-full bg-success/10">
             <TrendingUp className="h-6 w-6 text-success" />
@@ -54,7 +55,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings }: B
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Savings</p>
             <p className={`text-2xl font-bold ${savingsIsPositive ? 'text-success' : 'text-destructive'}`}>
-              {savingsIsPositive ? '+' : ''}{savings >= 0 ? '$' : '-$'}{Math.abs(savings).toFixed(2)}
+              {savingsIsPositive ? '+' : ''}{savings >= 0 ? currencySymbol : `-${currencySymbol}`}{Math.abs(savings).toFixed(2)}
             </p>
           </div>
           <div className={`p-3 rounded-full ${savingsIsPositive ? 'bg-success/20' : 'bg-destructive/20'}`}>

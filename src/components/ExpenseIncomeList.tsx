@@ -13,9 +13,10 @@ export interface Transaction {
 interface ExpenseIncomeListProps {
   transactions: Transaction[];
   onDelete: (id: string) => void;
+  currencySymbol: string;
 }
 
-export function ExpenseIncomeList({ transactions, onDelete }: ExpenseIncomeListProps) {
+export function ExpenseIncomeList({ transactions, onDelete, currencySymbol }: ExpenseIncomeListProps) {
   const expenses = transactions.filter(t => t.type === "expense");
   const income = transactions.filter(t => t.type === "income");
 
@@ -38,7 +39,7 @@ export function ExpenseIncomeList({ transactions, onDelete }: ExpenseIncomeListP
                 >
                   <div>
                     <p className="font-medium text-foreground">{expense.title}</p>
-                    <p className="text-sm text-destructive font-semibold">${expense.amount.toFixed(2)}</p>
+                    <p className="text-sm text-destructive font-semibold">{currencySymbol}{expense.amount.toFixed(2)}</p>
                   </div>
                   <Button
                     variant="ghost"
@@ -72,7 +73,7 @@ export function ExpenseIncomeList({ transactions, onDelete }: ExpenseIncomeListP
                 >
                   <div>
                     <p className="font-medium text-foreground">{inc.title}</p>
-                    <p className="text-sm text-success font-semibold">${inc.amount.toFixed(2)}</p>
+                    <p className="text-sm text-success font-semibold">{currencySymbol}{inc.amount.toFixed(2)}</p>
                   </div>
                   <Button
                     variant="ghost"
