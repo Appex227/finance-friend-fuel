@@ -12,13 +12,25 @@ interface MonthlyData {
   transactions: Transaction[];
 }
 
-const USD_TO_INR = 83.0; // Conversion rate
+const CONVERSION_RATES = {
+  USD: 1,
+  EUR: 0.92,
+  INR: 83.0,
+  JPY: 150.0
+};
+
+const CURRENCY_SYMBOLS = {
+  USD: "$",
+  EUR: "€",
+  INR: "₹",
+  JPY: "¥"
+};
 
 const Index = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [currency, setCurrency] = useState<"USD" | "INR">("USD");
+  const [currency, setCurrency] = useState<"USD" | "INR" | "EUR" | "JPY">("USD");
   
   const getStorageKey = (month: number, year: number) => 
     `budget-app-${year}-${month}`;
@@ -95,8 +107,8 @@ const Index = () => {
 
   const savings = monthlyData.budget - totalExpenses;
 
-  const currencySymbol = currency === "USD" ? "$" : "₹";
-  const conversionRate = currency === "INR" ? USD_TO_INR : 1;
+  const currencySymbol = CURRENCY_SYMBOLS[currency];
+  const conversionRate = CONVERSION_RATES[currency];
 
   const displayAmount = (amount: number) => amount * conversionRate;
 
