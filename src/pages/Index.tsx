@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MonthYearSelector } from "@/components/MonthYearSelector";
 import { CurrencySelector } from "@/components/CurrencySelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { ExpenseIncomeForm } from "@/components/ExpenseIncomeForm";
 import { ExpenseIncomeList, Transaction } from "@/components/ExpenseIncomeList";
@@ -125,7 +126,7 @@ const Index = () => {
                 Manage your finances and track your savings
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-3 items-center">
               <MonthYearSelector
                 selectedMonth={selectedMonth}
                 selectedYear={selectedYear}
@@ -136,6 +137,7 @@ const Index = () => {
                 selectedCurrency={currency}
                 onCurrencyChange={setCurrency}
               />
+              <ThemeToggle />
             </div>
           </div>
           
