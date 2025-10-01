@@ -58,7 +58,7 @@ const Index = () => {
 
   useEffect(() => {
     saveMonthlyData(selectedMonth, selectedYear, monthlyData);
-  }, [monthlyData, selectedMonth, selectedYear]);
+  }, [monthlyData]);
 
   const handleSetBudget = (amount: number) => {
     setMonthlyData(prev => ({ ...prev, budget: amount }));
@@ -119,26 +119,17 @@ const Index = () => {
     let cumulativeExpenses = 0;
     let cumulativeIncome = 0;
     let cumulativeBudget = 0;
-
-    console.log('=== Cumulative Data Debug ===');
-    console.log('All keys found:', allKeys);
+    const seenIds = new Set<string>();
 
     allKeys.forEach(key => {
       const data = JSON.parse(localStorage.getItem(key) || '{"budget":0,"transactions":[]}');
-      console.log(`Key: ${key}`, data);
       cumulativeBudget += data.budget || 0;
       data.transactions?.forEach((t: Transaction) => {
-        console.log(`Transaction: ${t.type} - ${t.amount}`);
+        if (seenIds.has(t.id)) return;
+        seenIds.add(t.id);
         if (t.type === 'expense') cumulativeExpenses += t.amount;
         else if (t.type === 'income') cumulativeIncome += t.amount;
       });
-    });
-
-    console.log('Final cumulative values (before conversion):', {
-      budget: cumulativeBudget,
-      expenses: cumulativeExpenses,
-      income: cumulativeIncome,
-      savings: cumulativeBudget - cumulativeExpenses
     });
 
     return {
