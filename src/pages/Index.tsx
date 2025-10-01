@@ -31,7 +31,7 @@ const Index = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [currency, setCurrency] = useState<"USD" | "INR" | "EUR" | "JPY">("USD");
+  const [currency, setCurrency] = useState<"USD" | "INR" | "EUR" | "JPY">("INR");
   
   const getStorageKey = (month: number, year: number) => 
     `budget-app-${year}-${month}`;
