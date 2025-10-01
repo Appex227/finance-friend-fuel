@@ -113,6 +113,32 @@ const Index = () => {
 
   const displayAmount = (amount: number) => amount * conversionRate;
 
+  // Calculate cumulative data across all months
+  const getCumulativeData = () => {
+    const allKeys = Object.keys(localStorage).filter(key => key.startsWith('budget-app-'));
+    let cumulativeExpenses = 0;
+    let cumulativeIncome = 0;
+    let cumulativeBudget = 0;
+
+    allKeys.forEach(key => {
+      const data = JSON.parse(localStorage.getItem(key) || '{"budget":0,"transactions":[]}');
+      cumulativeBudget += data.budget || 0;
+      data.transactions?.forEach((t: Transaction) => {
+        if (t.type === 'expense') cumulativeExpenses += t.amount;
+        else if (t.type === 'income') cumulativeIncome += t.amount;
+      });
+    });
+
+    return {
+      budget: cumulativeBudget,
+      expenses: cumulativeExpenses,
+      income: cumulativeIncome,
+      savings: cumulativeBudget - cumulativeExpenses
+    };
+  };
+
+  const cumulativeData = getCumulativeData();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -156,7 +182,39 @@ const Index = () => {
             onAddIncome={handleAddIncome}
             onSetBudget={handleSetBudget}
             currentBudget={monthlyData.budget}
+            conversionRate={conversionRate}
+            currencySymbol={currencySymbol}
           />
+
+          <div className="bg-card rounded-lg border p-6 shadow-sm">
+            <h2 className="text-2xl font-bold mb-4 text-foreground">Cumulative Summary (All Time)</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Total Budget</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {currencySymbol}{displayAmount(cumulativeData.budget).toFixed(2)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Total Expenses</p>
+                <p className="text-2xl font-bold text-destructive">
+                  {currencySymbol}{displayAmount(cumulativeData.expenses).toFixed(2)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Total Income</p>
+                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                  {currencySymbol}{displayAmount(cumulativeData.income).toFixed(2)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">Total Savings</p>
+                <p className={`text-2xl font-bold ${cumulativeData.savings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+                  {currencySymbol}{displayAmount(cumulativeData.savings).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
 
           <MotivationalTips />
 
