@@ -90,6 +90,16 @@ const Index = () => {
     }));
   };
 
+  const handleEditTransaction = (id: string, title: string, amount: number) => {
+    setMonthlyData(prev => ({
+      ...prev,
+      transactions: prev.transactions.map(t => 
+        t.id === id ? { ...t, title, amount: amount / conversionRate } : t
+      )
+    }));
+    toast.success("Transaction updated");
+  };
+
   const handleDeleteTransaction = (id: string) => {
     setMonthlyData(prev => ({
       ...prev,
@@ -227,6 +237,7 @@ const Index = () => {
               amount: displayAmount(t.amount)
             }))}
             onDelete={handleDeleteTransaction}
+            onEdit={handleEditTransaction}
             currencySymbol={currencySymbol}
           />
         </div>
