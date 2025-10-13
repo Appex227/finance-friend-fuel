@@ -1,246 +1,93 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { DollarSign, LogOut, Info } from "lucide-react";
 import { MonthYearSelector } from "@/components/MonthYearSelector";
-import { CurrencySelector } from "@/components/CurrencySelector";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { ExpenseIncomeForm } from "@/components/ExpenseIncomeForm";
-import { ExpenseIncomeList, Transaction } from "@/components/ExpenseIncomeList";
+import { ExpenseIncomeList } from "@/components/ExpenseIncomeList";
+import { CurrencySelector } from "@/components/CurrencySelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotivationalTips } from "@/components/MotivationalTips";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { useBudgetData } from "@/hooks/useBudgetData";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+
+const CONVERSION_RATES: { [key: string]: number } = {
+  USD: 1,
+  EUR: 0.85,
+  GBP: 0.73,
+  INR: 83.12,
+  JPY: 110.0,
+};
+
+const CURRENCY_SYMBOLS: { [key: string]: string } = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  INR: "₹",
+  JPY: "¥",
+};
 
 interface MonthlyData {
   budget: number;
-  transactions: Transaction[];
+  transactions: Array<{
+    id: string;
+    title: string;
+    amount: number;
+    type: "expense" | "income";
+  }>;
 }
 
-const CONVERSION_RATES = {
-  USD: 1,
-  EUR: 0.92,
-  INR: 83.0,
-  JPY: 150.0
-};
-
-const CURRENCY_SYMBOLS = {
-  USD: "$",
-  EUR: "€",
-  INR: "₹",
-  JPY: "¥"
-};
-
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading, signOut } = useAuth();
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [currency, setCurrency] = useState<"USD" | "INR" | "EUR" | "JPY">("INR");
-  
-  const getStorageKey = (month: number, year: number) => 
-    `budget-app-${year}-${month}`;
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
 
-  const loadMonthlyData = (month: number, year: number): MonthlyData => {
-    const key = getStorageKey(month, year);
-    const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : { budget: 0, transactions: [] };
-  };
-
-  const saveMonthlyData = (month: number, year: number, data: MonthlyData) => {
-    const key = getStorageKey(month, year);
-    localStorage.setItem(key, JSON.stringify(data));
-  };
-
-  const [monthlyData, setMonthlyData] = useState<MonthlyData>(() => 
-    loadMonthlyData(selectedMonth, selectedYear)
-  );
+  const { budget, transactions, cumulativeData, isLoading, updateBudget, addTransaction, updateTransaction, deleteTransaction } = useBudgetData(selectedMonth, selectedYear);
 
   useEffect(() => {
-    const data = loadMonthlyData(selectedMonth, selectedYear);
-    setMonthlyData(data);
-  }, [selectedMonth, selectedYear]);
+    if (!loading && !user) navigate("/auth");
+  }, [user, loading, navigate]);
 
-  useEffect(() => {
-    saveMonthlyData(selectedMonth, selectedYear, monthlyData);
-  }, [monthlyData]);
+  if (loading || !user) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
 
-  const handleSetBudget = (amount: number) => {
-    setMonthlyData(prev => ({ ...prev, budget: amount }));
-  };
+  const currencySymbol = CURRENCY_SYMBOLS[selectedCurrency];
+  const conversionRate = CONVERSION_RATES[selectedCurrency];
+  const displayAmount = (amountInUSD: number) => (amountInUSD * conversionRate).toFixed(2);
 
-  const handleAddExpense = (title: string, amount: number) => {
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      title,
-      amount,
-      type: "expense"
-    };
-    setMonthlyData(prev => ({
-      ...prev,
-      transactions: [...prev.transactions, newTransaction]
-    }));
-  };
-
-  const handleAddIncome = (title: string, amount: number) => {
-    const newTransaction: Transaction = {
-      id: Date.now().toString(),
-      title,
-      amount,
-      type: "income"
-    };
-    setMonthlyData(prev => ({
-      ...prev,
-      transactions: [...prev.transactions, newTransaction]
-    }));
-  };
-
-  const handleEditTransaction = (id: string, title: string, amount: number) => {
-    setMonthlyData(prev => ({
-      ...prev,
-      transactions: prev.transactions.map(t => 
-        t.id === id ? { ...t, title, amount: amount / conversionRate } : t
-      )
-    }));
-    toast.success("Transaction updated");
-  };
-
-  const handleDeleteTransaction = (id: string) => {
-    setMonthlyData(prev => ({
-      ...prev,
-      transactions: prev.transactions.filter(t => t.id !== id)
-    }));
-    toast.success("Transaction deleted");
-  };
-
-  const totalExpenses = monthlyData.transactions
-    .filter(t => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalIncome = monthlyData.transactions
-    .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const savings = monthlyData.budget - totalExpenses;
-
-  const currencySymbol = CURRENCY_SYMBOLS[currency];
-  const conversionRate = CONVERSION_RATES[currency];
-
-  const displayAmount = (amount: number) => amount * conversionRate;
-
-  // Calculate cumulative data across all months
-  const getCumulativeData = () => {
-    const allKeys = Object.keys(localStorage).filter(key => key.startsWith('budget-app-'));
-    let cumulativeExpenses = 0;
-    let cumulativeIncome = 0;
-    let cumulativeBudget = 0;
-    const seenIds = new Set<string>();
-
-    allKeys.forEach(key => {
-      const data = JSON.parse(localStorage.getItem(key) || '{"budget":0,"transactions":[]}');
-      cumulativeBudget += data.budget || 0;
-      data.transactions?.forEach((t: Transaction) => {
-        if (seenIds.has(t.id)) return;
-        seenIds.add(t.id);
-        if (t.type === 'expense') cumulativeExpenses += t.amount;
-        else if (t.type === 'income') cumulativeIncome += t.amount;
-      });
-    });
-
-    return {
-      budget: cumulativeBudget,
-      expenses: cumulativeExpenses,
-      income: cumulativeIncome,
-      savings: cumulativeBudget - cumulativeExpenses
-    };
-  };
-
-  const cumulativeData = getCumulativeData();
+  const totalExpenses = transactions?.reduce((sum, t) => (t.type === "expense" ? sum + Number(t.amount) : sum), 0) || 0;
+  const totalIncome = transactions?.reduce((sum, t) => (t.type === "income" ? sum + Number(t.amount) : sum), 0) || 0;
+  const budgetAmount = Number(budget?.budget_amount || 0);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/10">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <header className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">
-                Budget Tracker
-              </h1>
-              <p className="text-muted-foreground">
-                Manage your finances and track your savings
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-3 items-center">
-              <MonthYearSelector
-                selectedMonth={selectedMonth}
-                selectedYear={selectedYear}
-                onMonthChange={setSelectedMonth}
-                onYearChange={setSelectedYear}
-              />
-              <CurrencySelector
-                selectedCurrency={currency}
-                onCurrencyChange={setCurrency}
-              />
-              <ThemeToggle />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      <div className="container mx-auto p-4 space-y-6">
+        <header className="flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <DollarSign className="w-8 h-8" />
+            <div><h1 className="text-4xl font-bold">Budget Tracker</h1><p className="text-sm">{user.email}</p></div>
           </div>
-          
-          <BudgetSummary
-            budget={displayAmount(monthlyData.budget)}
-            totalExpenses={displayAmount(totalExpenses)}
-            totalIncome={displayAmount(totalIncome)}
-            savings={displayAmount(savings)}
-            currencySymbol={currencySymbol}
-          />
+          <div className="flex gap-3"><ThemeToggle /><Button onClick={async () => { await signOut(); navigate("/auth"); }} variant="outline" size="sm"><LogOut className="w-4 h-4 mr-2" />Logout</Button></div>
         </header>
-
-        <div className="space-y-6">
-          <ExpenseIncomeForm
-            onAddExpense={handleAddExpense}
-            onAddIncome={handleAddIncome}
-            onSetBudget={handleSetBudget}
-            currentBudget={monthlyData.budget}
-            conversionRate={conversionRate}
-            currencySymbol={currencySymbol}
-          />
-
-          <div className="bg-card rounded-lg border p-6 shadow-sm">
-            <h2 className="text-2xl font-bold mb-4 text-foreground">Cumulative Summary (All Time)</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Budget</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {currencySymbol}{displayAmount(cumulativeData.budget).toFixed(2)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Expenses</p>
-                <p className="text-2xl font-bold text-destructive">
-                  {currencySymbol}{displayAmount(cumulativeData.expenses).toFixed(2)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Income</p>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {currencySymbol}{displayAmount(cumulativeData.income).toFixed(2)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Total Savings</p>
-                <p className={`text-2xl font-bold ${cumulativeData.savings >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
-                  {currencySymbol}{displayAmount(cumulativeData.savings).toFixed(2)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <MotivationalTips />
-
-          <ExpenseIncomeList
-            transactions={monthlyData.transactions.map(t => ({
-              ...t,
-              amount: displayAmount(t.amount)
-            }))}
-            onDelete={handleDeleteTransaction}
-            onEdit={handleEditTransaction}
-            currencySymbol={currencySymbol}
-          />
+        <div className="flex gap-4">
+          <MonthYearSelector selectedMonth={selectedMonth} selectedYear={selectedYear} onMonthChange={setSelectedMonth} onYearChange={setSelectedYear} />
+          <CurrencySelector selectedCurrency={selectedCurrency} onCurrencyChange={setSelectedCurrency} />
         </div>
+        {isLoading ? <p>Loading...</p> : (
+          <>
+            <BudgetSummary budget={Number(displayAmount(budgetAmount))} totalExpenses={Number(displayAmount(totalExpenses))} totalIncome={Number(displayAmount(totalIncome))} savings={Number(displayAmount(totalIncome - totalExpenses))} currencySymbol={currencySymbol} />
+            <ExpenseIncomeForm onAddExpense={(t, a) => addTransaction({ title: t, amount: a, type: "expense" })} onAddIncome={(t, a) => addTransaction({ title: t, amount: a, type: "income" })} onSetBudget={updateBudget} currentBudget={Number(displayAmount(budgetAmount))} conversionRate={conversionRate} currencySymbol={currencySymbol} />
+            <Card><CardHeader><CardTitle>All Time Summary</CardTitle></CardHeader><CardContent className="grid grid-cols-3 gap-4"><div><p className="text-sm">Total Budget</p><p className="text-2xl font-bold">{currencySymbol}{displayAmount(cumulativeData?.totalBudget || 0)}</p></div><div><p className="text-sm">Total Expenses</p><p className="text-2xl font-bold text-destructive">{currencySymbol}{displayAmount(cumulativeData?.totalExpenses || 0)}</p></div><div><p className="text-sm">Total Income</p><p className="text-2xl font-bold text-green-600">{currencySymbol}{displayAmount(cumulativeData?.totalIncome || 0)}</p></div></CardContent></Card>
+            <MotivationalTips />
+            <ExpenseIncomeList transactions={transactions?.map(t => ({ ...t, amount: Number(displayAmount(Number(t.amount))) })) || []} onDelete={deleteTransaction} onEdit={(id, t, a) => updateTransaction({ id, title: t, amount: a / conversionRate })} currencySymbol={currencySymbol} />
+          </>
+        )}
       </div>
     </div>
   );
