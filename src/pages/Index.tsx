@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useBudgetData } from "@/hooks/useBudgetData";
+import { UpgradeAccountBanner } from "@/components/UpgradeAccountBanner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
@@ -44,16 +45,16 @@ interface MonthlyData {
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  
+  // No redirect - anonymous auth handles this automatically
+  const isAnonymous = user?.is_anonymous ?? false;
+  
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedCurrency, setSelectedCurrency] = useState<"USD" | "INR" | "EUR" | "JPY">("INR");
 
   const { budget, transactions, cumulativeData, isLoading, updateBudget, addTransaction, updateTransaction, deleteTransaction } = useBudgetData(selectedMonth, selectedYear);
-
-  useEffect(() => {
-    if (!loading && !user) navigate("/auth");
-  }, [user, loading, navigate]);
 
   if (loading || !user) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
 
@@ -71,10 +72,21 @@ const Index = () => {
         <header className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             <DollarSign className="w-8 h-8" />
-            <div><h1 className="text-4xl font-bold">Budget Tracker</h1><p className="text-sm">{user.email}</p></div>
+            <div>
+              <h1 className="text-4xl font-bold">Budget Tracker</h1>
+              <p className="text-sm">{isAnonymous ? "Guest User" : user.email}</p>
+            </div>
           </div>
-          <div className="flex gap-3"><ThemeToggle /><Button onClick={async () => { await signOut(); navigate("/auth"); }} variant="outline" size="sm"><LogOut className="w-4 h-4 mr-2" />Logout</Button></div>
+          <div className="flex gap-3">
+            <ThemeToggle />
+            {!isAnonymous && (
+              <Button onClick={async () => { await signOut(); navigate("/auth"); }} variant="outline" size="sm">
+                <LogOut className="w-4 h-4 mr-2" />Logout
+              </Button>
+            )}
+          </div>
         </header>
+        <UpgradeAccountBanner isAnonymous={isAnonymous} />
         <div className="flex gap-4">
           <MonthYearSelector selectedMonth={selectedMonth} selectedYear={selectedYear} onMonthChange={setSelectedMonth} onYearChange={setSelectedYear} />
           <CurrencySelector selectedCurrency={selectedCurrency} onCurrencyChange={setSelectedCurrency} />

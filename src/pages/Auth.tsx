@@ -109,12 +109,12 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            {isLogin ? "Welcome Back" : "Create Account"}
+            {isLogin ? "Welcome Back!" : "Link Your Account"}
           </CardTitle>
           <CardDescription className="text-center">
             {isLogin
-              ? "Log in to access your budget tracker"
-              : "Sign up to start tracking your finances"}
+              ? "Sign in to access your budget from any device"
+              : "Create an account to sync your budget across all devices. Your existing data will be preserved."}
           </CardDescription>
         </CardHeader>
         <CardContent>
