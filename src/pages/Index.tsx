@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { DollarSign, LogOut, Info } from "lucide-react";
+import { IndianRupee, LogOut, Info } from "lucide-react";
 import { MonthYearSelector } from "@/components/MonthYearSelector";
 import { BudgetSummary } from "@/components/BudgetSummary";
 import { ExpenseIncomeForm } from "@/components/ExpenseIncomeForm";
@@ -71,7 +71,7 @@ const Index = () => {
       <div className="container mx-auto p-4 space-y-6">
         <header className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <DollarSign className="w-8 h-8" />
+            <IndianRupee className="w-8 h-8" />
             <div>
               <h1 className="text-4xl font-bold">Budget Tracker</h1>
               <p className="text-sm">{isAnonymous ? "Guest User" : user.email}</p>
