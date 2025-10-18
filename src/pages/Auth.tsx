@@ -10,6 +10,10 @@ import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const fullNameSchema = z.string()
+  .trim()
+  .min(1, "Please enter your full name")
+  .max(100, "Name must be less than 100 characters");
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -65,8 +69,10 @@ const Auth = () => {
     e.preventDefault();
     if (!validateInputs()) return;
     
-    if (!fullName.trim()) {
-      toast.error("Please enter your name");
+    // Validate full name
+    const fullNameResult = fullNameSchema.safeParse(fullName);
+    if (!fullNameResult.success) {
+      toast.error(fullNameResult.error.errors[0].message);
       return;
     }
 
@@ -80,7 +86,7 @@ const Auth = () => {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: fullName,
+            full_name: fullNameResult.data,
           },
         },
       });
@@ -128,6 +134,7 @@ const Auth = () => {
                   placeholder="John Doe"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
+                  maxLength={100}
                   required={!isLogin}
                 />
               </div>

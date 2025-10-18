@@ -5,6 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// Validation schemas
+const amountSchema = z.number()
+  .positive("Amount must be positive")
+  .max(999999999, "Amount is too large")
+  .finite("Amount must be a valid number")
+  .refine((val) => Number.isFinite(val) && val === Math.round(val * 100) / 100, {
+    message: "Amount must have at most 2 decimal places"
+  });
+
+const titleSchema = z.string()
+  .trim()
+  .min(1, "Title cannot be empty")
+  .max(200, "Title must be less than 200 characters");
 
 interface ExpenseIncomeFormProps {
   onAddExpense: (title: string, amount: number) => void;
@@ -35,38 +50,64 @@ export function ExpenseIncomeForm({
   }, [currentBudget, conversionRate]);
 
   const handleAddExpense = () => {
-    if (!expenseTitle.trim() || !expenseAmount) {
-      toast.error("Please fill in both expense title and amount");
+    // Validate title
+    const titleResult = titleSchema.safeParse(expenseTitle);
+    if (!titleResult.success) {
+      toast.error(titleResult.error.errors[0].message);
       return;
     }
+
+    // Validate amount
+    const amount = parseFloat(expenseAmount);
+    const amountResult = amountSchema.safeParse(amount);
+    if (!amountResult.success) {
+      toast.error(amountResult.error.errors[0].message);
+      return;
+    }
+
     // Convert from selected currency to USD for storage
-    const amountInUSD = parseFloat(expenseAmount) / conversionRate;
-    onAddExpense(expenseTitle, amountInUSD);
+    const amountInUSD = amount / conversionRate;
+    onAddExpense(titleResult.data, amountInUSD);
     setExpenseTitle("");
     setExpenseAmount("");
     toast.success("Expense added successfully");
   };
 
   const handleAddIncome = () => {
-    if (!incomeTitle.trim() || !incomeAmount) {
-      toast.error("Please fill in both income title and amount");
+    // Validate title
+    const titleResult = titleSchema.safeParse(incomeTitle);
+    if (!titleResult.success) {
+      toast.error(titleResult.error.errors[0].message);
       return;
     }
+
+    // Validate amount
+    const amount = parseFloat(incomeAmount);
+    const amountResult = amountSchema.safeParse(amount);
+    if (!amountResult.success) {
+      toast.error(amountResult.error.errors[0].message);
+      return;
+    }
+
     // Convert from selected currency to USD for storage
-    const amountInUSD = parseFloat(incomeAmount) / conversionRate;
-    onAddIncome(incomeTitle, amountInUSD);
+    const amountInUSD = amount / conversionRate;
+    onAddIncome(titleResult.data, amountInUSD);
     setIncomeTitle("");
     setIncomeAmount("");
     toast.success("Income added successfully");
   };
 
   const handleSetBudget = () => {
-    if (!budget) {
-      toast.error("Please enter a budget amount");
+    // Validate amount
+    const amount = parseFloat(budget);
+    const amountResult = amountSchema.safeParse(amount);
+    if (!amountResult.success) {
+      toast.error(amountResult.error.errors[0].message);
       return;
     }
+
     // Convert from selected currency to USD for storage
-    const amountInUSD = parseFloat(budget) / conversionRate;
+    const amountInUSD = amount / conversionRate;
     onSetBudget(amountInUSD);
     toast.success("Budget updated successfully");
   };
@@ -104,6 +145,7 @@ export function ExpenseIncomeForm({
               value={expenseTitle}
               onChange={(e) => setExpenseTitle(e.target.value)}
               className="mt-1"
+              maxLength={200}
             />
           </div>
           <div>
@@ -135,6 +177,7 @@ export function ExpenseIncomeForm({
               value={incomeTitle}
               onChange={(e) => setIncomeTitle(e.target.value)}
               className="mt-1"
+              maxLength={200}
             />
           </div>
           <div>
