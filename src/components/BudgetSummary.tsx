@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Wallet, Pencil, Check, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface BudgetSummaryProps {
   budget: number;
@@ -7,23 +10,67 @@ interface BudgetSummaryProps {
   totalIncome: number;
   savings: number;
   currencySymbol: string;
+  onBudgetEdit?: (newBudget: number) => void;
 }
 
-export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, currencySymbol }: BudgetSummaryProps) {
+export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, currencySymbol, onBudgetEdit }: BudgetSummaryProps) {
   const savingsIsPositive = savings >= 0;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(budget.toFixed(2));
+
+  const handleSave = () => {
+    const newBudget = parseFloat(editValue);
+    if (!isNaN(newBudget) && newBudget >= 0 && onBudgetEdit) {
+      onBudgetEdit(newBudget);
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditValue(budget.toFixed(2));
+    setIsEditing(false);
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="p-6 transition-all hover:shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground font-medium mb-1">Total Budget</p>
-            <p className="text-2xl font-bold text-foreground">{currencySymbol}{budget.toFixed(2)}</p>
-          </div>
-          <div className="p-3 rounded-full bg-primary/10">
-            <Wallet className="h-6 w-6 text-primary" />
-          </div>
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
+          {onBudgetEdit && !isEditing && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsEditing(true)}
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+        {isEditing ? (
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="h-10"
+              autoFocus
+            />
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave}>
+              <Check className="h-4 w-4 text-success" />
+            </Button>
+            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancel}>
+              <X className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-foreground">{currencySymbol}{budget.toFixed(2)}</p>
+            <div className="p-3 rounded-full bg-primary/10">
+              <Wallet className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card className="p-6 transition-all hover:shadow-lg">

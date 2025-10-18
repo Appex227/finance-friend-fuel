@@ -93,7 +93,17 @@ const Index = () => {
         </div>
         {isLoading ? <p>Loading...</p> : (
           <>
-            <BudgetSummary budget={Number(displayAmount(budgetAmount))} totalExpenses={Number(displayAmount(totalExpenses))} totalIncome={Number(displayAmount(totalIncome))} savings={Number(displayAmount(totalIncome - totalExpenses))} currencySymbol={currencySymbol} />
+            <BudgetSummary 
+              budget={Number(displayAmount(budgetAmount))} 
+              totalExpenses={Number(displayAmount(totalExpenses))} 
+              totalIncome={Number(displayAmount(totalIncome))} 
+              savings={Number(displayAmount(totalIncome - totalExpenses))} 
+              currencySymbol={currencySymbol}
+              onBudgetEdit={(newBudget) => {
+                const budgetInUSD = newBudget / conversionRate;
+                updateBudget(budgetInUSD);
+              }}
+            />
             <ExpenseIncomeForm onAddExpense={(t, a) => addTransaction({ title: t, amount: a, type: "expense" })} onAddIncome={(t, a) => addTransaction({ title: t, amount: a, type: "income" })} onSetBudget={updateBudget} currentBudget={Number(displayAmount(budgetAmount))} conversionRate={conversionRate} currencySymbol={currencySymbol} />
             <Card><CardHeader><CardTitle>All Time Summary</CardTitle></CardHeader><CardContent className="grid grid-cols-3 gap-4"><div><p className="text-sm">Total Budget</p><p className="text-2xl font-bold">{currencySymbol}{displayAmount(cumulativeData?.totalBudget || 0)}</p></div><div><p className="text-sm">Total Expenses</p><p className="text-2xl font-bold text-destructive">{currencySymbol}{displayAmount(cumulativeData?.totalExpenses || 0)}</p></div><div><p className="text-sm">Total Income</p><p className="text-2xl font-bold text-green-600">{currencySymbol}{displayAmount(cumulativeData?.totalIncome || 0)}</p></div></CardContent></Card>
             <MotivationalTips />
