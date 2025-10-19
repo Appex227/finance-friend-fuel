@@ -34,38 +34,45 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card className="p-6 transition-all hover:shadow-lg">
-        <div className="flex items-center justify-between mb-2">
-          <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
-          {onBudgetEdit && !isEditing && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsEditing(true)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
         {isEditing ? (
-          <div className="flex items-center gap-2">
-            <Input
-              type="number"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="h-10"
-              autoFocus
-            />
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave}>
-              <Check className="h-4 w-4 text-success" />
-            </Button>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancel}>
-              <X className="h-4 w-4 text-destructive" />
-            </Button>
-          </div>
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="h-10"
+                autoFocus
+              />
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleSave}>
+                <Check className="h-4 w-4 text-success" />
+              </Button>
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCancel}>
+                <X className="h-4 w-4 text-destructive" />
+              </Button>
+            </div>
+          </>
         ) : (
           <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-foreground">{currencySymbol}{budget.toFixed(2)}</p>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
+                {onBudgetEdit && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+              <p className="text-2xl font-bold text-foreground">{currencySymbol}{budget.toFixed(2)}</p>
+            </div>
             <div className="p-3 rounded-full bg-primary/10">
               <Wallet className="h-6 w-6 text-primary" />
             </div>
