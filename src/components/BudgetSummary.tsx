@@ -36,7 +36,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
       <Card className="p-6 transition-all hover:shadow-lg">
         {isEditing ? (
           <>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-start justify-between mb-2">
               <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
             </div>
             <div className="flex items-center gap-2">
@@ -56,7 +56,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-sm text-muted-foreground font-medium">Total Budget</p>
@@ -81,7 +81,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
       </Card>
 
       <Card className="p-6 transition-all hover:shadow-lg">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Total Expenses</p>
             <p className="text-2xl font-bold text-destructive">{currencySymbol}{totalExpenses.toFixed(2)}</p>
@@ -93,7 +93,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
       </Card>
 
       <Card className="p-6 transition-all hover:shadow-lg">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Total Income</p>
             <p className="text-2xl font-bold text-success">{currencySymbol}{totalIncome.toFixed(2)}</p>
@@ -105,7 +105,7 @@ export function BudgetSummary({ budget, totalExpenses, totalIncome, savings, cur
       </Card>
 
       <Card className={`p-6 transition-all hover:shadow-lg ${savingsIsPositive ? 'bg-success/5 border-success/20' : 'bg-destructive/5 border-destructive/20'}`}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div>
             <p className="text-sm text-muted-foreground font-medium mb-1">Savings</p>
             <p className={`text-2xl font-bold ${savingsIsPositive ? 'text-success' : 'text-destructive'}`}>
