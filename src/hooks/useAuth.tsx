@@ -18,19 +18,19 @@ export const useAuth = () => {
     );
 
     // THEN check for existing session or create anonymous one
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
       } else {
-        // No session exists, sign in anonymously
-        const { data: anonData, error } = await supabase.auth.signInAnonymously();
-        if (!error && anonData) {
-          setSession(anonData.session);
-          setUser(anonData.user);
-        }
-        setLoading(false);
+        // No session exists, sign in anonymously - use setTimeout to prevent deadlock
+        setTimeout(() => {
+          supabase.auth.signInAnonymously().catch((error) => {
+            console.error("Anonymous sign-in error:", error);
+            setLoading(false);
+          });
+        }, 0);
       }
     });
 
