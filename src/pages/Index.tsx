@@ -46,9 +46,6 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
   
-  // No redirect - anonymous auth handles this automatically
-  const isAnonymous = user?.is_anonymous ?? false;
-  
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth());
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -56,7 +53,16 @@ const Index = () => {
 
   const { budget, transactions, cumulativeData, isLoading, updateBudget, addTransaction, updateTransaction, deleteTransaction } = useBudgetData(selectedMonth, selectedYear);
 
-  if (loading || !user) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [loading, user, navigate]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
+  if (!user) return null;
+
+  const isAnonymous = user?.is_anonymous ?? false;
 
   const currencySymbol = CURRENCY_SYMBOLS[selectedCurrency];
   const conversionRate = CONVERSION_RATES[selectedCurrency];
