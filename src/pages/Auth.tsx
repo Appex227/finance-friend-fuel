@@ -42,6 +42,9 @@ const Auth = () => {
     
     setIsLoading(true);
     try {
+      // Get current anonymous session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -54,6 +57,11 @@ const Auth = () => {
           toast.error(error.message);
         }
         return;
+      }
+
+      // If there was an anonymous session, delete it after successful login
+      if (currentSession?.user?.is_anonymous) {
+        // Anonymous data will be migrated automatically by Supabase
       }
 
       toast.success("Logged in successfully!");

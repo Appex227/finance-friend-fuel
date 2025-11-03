@@ -53,12 +53,6 @@ const Index = () => {
 
   const { budget, transactions, cumulativeData, isLoading, updateBudget, addTransaction, updateTransaction, deleteTransaction } = useBudgetData(selectedMonth, selectedYear);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [loading, user, navigate]);
-
   if (loading) return <div className="min-h-screen flex items-center justify-center"><p>Loading...</p></div>;
   if (!user) return null;
 
