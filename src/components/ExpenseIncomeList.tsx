@@ -6,6 +6,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { z } from "zod";
+import { toast } from "sonner";
+
+const titleSchema = z.string()
+  .trim()
+  .min(1, "Title cannot be empty")
+  .max(200, "Title must be less than 200 characters");
+
+const amountSchema = z.number()
+  .positive("Amount must be greater than 0")
+  .max(999999999, "Amount is too large")
+  .refine(
+    (val) => Number.isFinite(val),
+    "Amount must be a valid number"
+  );
 
 export interface Transaction {
   id: string;
@@ -36,12 +51,33 @@ export function ExpenseIncomeList({ transactions, onDelete, onEdit, currencySymb
   };
 
   const handleSaveEdit = () => {
-    if (editingTransaction && editTitle.trim() && editAmount) {
-      onEdit(editingTransaction.id, editTitle, parseFloat(editAmount));
-      setEditingTransaction(null);
-      setEditTitle("");
-      setEditAmount("");
+    if (!editingTransaction) return;
+    
+    // Validate title
+    const titleResult = titleSchema.safeParse(editTitle);
+    if (!titleResult.success) {
+      toast.error(titleResult.error.errors[0].message);
+      return;
     }
+    
+    // Validate amount
+    const amount = parseFloat(editAmount);
+    if (isNaN(amount)) {
+      toast.error("Please enter a valid number for amount");
+      return;
+    }
+    
+    const amountResult = amountSchema.safeParse(amount);
+    if (!amountResult.success) {
+      toast.error(amountResult.error.errors[0].message);
+      return;
+    }
+    
+    onEdit(editingTransaction.id, titleResult.data, amountResult.data);
+    setEditingTransaction(null);
+    setEditTitle("");
+    setEditAmount("");
+    toast.success("Transaction updated successfully");
   };
 
   return (
