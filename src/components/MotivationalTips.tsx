@@ -62,10 +62,13 @@ export function MotivationalTips() {
   return (
     <Card className="p-6 bg-gradient-to-br from-accent/20 to-primary/5 border-primary/20">
       <div className="flex items-start gap-4">
-        <div className="p-3 rounded-full bg-card shadow-sm">
-          <Icon className={`h-6 w-6 ${tip.color}`} />
+        <div 
+          key={currentTip} 
+          className="p-3 rounded-full bg-card shadow-sm animate-in fade-in-0 zoom-in-95 duration-500"
+        >
+          <Icon className={`h-6 w-6 ${tip.color} transition-all duration-300`} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 animate-in fade-in-50 slide-in-from-right-4 duration-500">
           <h3 className="text-sm font-semibold text-muted-foreground mb-2">
             💡 Money Saving Tip
           </h3>
