@@ -28,13 +28,26 @@ export const useBudgetData = (month: number, year: number) => {
   const updateBudgetMutation = useMutation({
     mutationFn: (amount: number) =>
       budgetQueries.updateBudgetAmount(budget!.id, amount),
+    onMutate: async (amount: number) => {
+      await queryClient.cancelQueries({ queryKey: ["monthly-budget", month, year] });
+      const previous = queryClient.getQueryData(["monthly-budget", month, year]);
+      // Optimistically update cache
+      queryClient.setQueryData(["monthly-budget", month, year], (old: any) => ({
+        ...(old || {}),
+        id: old?.id ?? budget?.id,
+        budget_amount: amount,
+      }));
+      return { previous };
+    },
+    onError: (_error, _amount, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["monthly-budget", month, year], context.previous);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["monthly-budget", month, year] });
       queryClient.invalidateQueries({ queryKey: ["cumulative-data"] });
       toast.success("Budget updated successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to update budget");
     },
   });
 
