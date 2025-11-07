@@ -66,7 +66,7 @@ export function ExpenseIncomeForm({
     }
 
     // Convert from selected currency to USD for storage
-    const amountInUSD = amount / conversionRate;
+    const amountInUSD = parseFloat((amount / conversionRate).toFixed(6));
     onAddExpense(titleResult.data, amountInUSD);
     setExpenseTitle("");
     setExpenseAmount("");
@@ -90,7 +90,7 @@ export function ExpenseIncomeForm({
     }
 
     // Convert from selected currency to USD for storage
-    const amountInUSD = amount / conversionRate;
+    const amountInUSD = parseFloat((amount / conversionRate).toFixed(6));
     onAddIncome(titleResult.data, amountInUSD);
     setIncomeTitle("");
     setIncomeAmount("");
@@ -107,7 +107,7 @@ export function ExpenseIncomeForm({
     }
 
     // Convert from selected currency to USD for storage
-    const amountInUSD = amount / conversionRate;
+    const amountInUSD = parseFloat((amount / conversionRate).toFixed(6));
     onSetBudget(amountInUSD);
     toast.success("Budget updated successfully");
   };
