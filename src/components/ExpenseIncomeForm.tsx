@@ -42,11 +42,11 @@ export function ExpenseIncomeForm({
   const [expenseAmount, setExpenseAmount] = useState("");
   const [incomeTitle, setIncomeTitle] = useState("");
   const [incomeAmount, setIncomeAmount] = useState("");
-  const [budget, setBudget] = useState((currentBudget * conversionRate).toFixed(2));
+  const [budget, setBudget] = useState(currentBudget.toFixed(2));
 
   // Update budget display when currency or budget changes
   useEffect(() => {
-    setBudget((currentBudget * conversionRate).toFixed(2));
+    setBudget(currentBudget.toFixed(2));
   }, [currentBudget, conversionRate]);
 
   const handleAddExpense = () => {
