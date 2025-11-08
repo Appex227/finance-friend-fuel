@@ -97,7 +97,7 @@ const Index = () => {
               budget={Number(displayAmount(budgetAmount))} 
               totalExpenses={Number(displayAmount(totalExpenses))} 
               totalIncome={Number(displayAmount(totalIncome))} 
-              savings={Number(displayAmount(totalIncome - totalExpenses))} 
+              savings={Number(displayAmount(budgetAmount - totalExpenses))} 
               currencySymbol={currencySymbol}
               onBudgetEdit={(newBudget) => {
                 const budgetInUSD = parseFloat((newBudget / conversionRate).toFixed(6));
