@@ -18,6 +18,7 @@ const fullNameSchema = z.string()
 const Auth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -118,22 +119,58 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate email only
+    try {
+      emailSchema.parse(email);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      }
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Password reset email sent! Please check your inbox.");
+      setIsForgotPassword(false);
+      setIsLogin(true);
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            {isLogin ? "Welcome Back!" : "Link Your Account"}
+            {isForgotPassword ? "Reset Password" : isLogin ? "Welcome Back!" : "Link Your Account"}
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin
+            {isForgotPassword
+              ? "Enter your email to receive a password reset link"
+              : isLogin
               ? "Sign in to access your budget from any device"
               : "Create an account to sync your budget across all devices. Your existing data will be preserved."}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={isLogin ? handleLogin : handleSignup} className="space-y-4">
-            {!isLogin && (
+          <form onSubmit={isForgotPassword ? handleForgotPassword : isLogin ? handleLogin : handleSignup} className="space-y-4">
+            {!isLogin && !isForgotPassword && (
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input
@@ -160,33 +197,53 @@ const Auth = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            {!isForgotPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+
+            {isLogin && !isForgotPassword && (
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm p-0 h-auto justify-start"
+                onClick={() => setIsForgotPassword(true)}
+              >
+                Forgot your password?
+              </Button>
+            )}
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Loading..." : isLogin ? "Log In" : "Sign Up"}
+              {isLoading ? "Loading..." : isForgotPassword ? "Send Reset Link" : isLogin ? "Log In" : "Sign Up"}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm">
             <button
               onClick={() => {
-                setIsLogin(!isLogin);
+                if (isForgotPassword) {
+                  setIsForgotPassword(false);
+                  setIsLogin(true);
+                } else {
+                  setIsLogin(!isLogin);
+                }
                 setPassword("");
               }}
               className="text-primary hover:underline"
               type="button"
             >
-              {isLogin
+              {isForgotPassword
+                ? "Back to log in"
+                : isLogin
                 ? "Don't have an account? Sign up"
                 : "Already have an account? Log in"}
             </button>
